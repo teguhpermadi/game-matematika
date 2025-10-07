@@ -1,18 +1,20 @@
 const mainContainer = document.getElementById('main-container');
 let userName = '';
-let mode = '';
-let operation = '';
-let number = 0;
+let mode = ''; // 'latihan' atau 'tes'
+let operation = ''; // 'perkalian', 'pembagian', 'pembagian_bersusun'
+let number = 0; // Angka tabel (1-10) atau jenis multi-digit ('campuran', '2x1', 'campuran-div', dll.)
 let totalQuestions = 0;
 let questions = [];
 let currentQuestionIndex = 0;
 let score = 0;
 let timerInterval;
 let testAnswers = [];
-let timerSeconds = 30;
+let timerSeconds = 30; // Batas waktu default per soal
 let startTimePerQuestion;
 let totalTimeElapsed = 0;
 let selectedMultiplicationTables = [];
+
+// --- UTILITY FUNCTIONS ---
 
 // Fungsi animasi menggunakan anime.js
 function animateElement(selector) {
@@ -26,20 +28,19 @@ function animateElement(selector) {
     });
 }
 
-// Helper function untuk mendapatkan nama tampilan dari tipe perkalian/pembagian
+// Helper function untuk mendapatkan nama tampilan dari tipe soal
 function getMultiplicationDisplayName(numberType) {
     const displayNames = {
-        'campuran': 'Dasar Campuran (1-10)',
-        '2x1': '2 Digit × 1 Digit',
-        '3x1': '3 Digit × 1 Digit',
-        '4x1': '4 Digit × 1 Digit',
-        '2x2': '2 Digit × 2 Digit',
-        '3x2': '3 Digit × 2 Digit',
-        '4x2': '4 Digit × 2 Digit',
-        '2d1d': '2 Digit ÷ 1 Digit',
-        '3d1d': '3 Digit ÷ 1 Digit',
-        '4d1d': '4 Digit ÷ 1 Digit',
-        '5d1d': '5 Digit ÷ 1 Digit'
+        'campuran': 'Perkalian Dasar Campuran (1-10)',
+        'campuran-div': 'Pembagian Dasar Campuran (1-10)',
+        '2x1': 'Perkalian 2 Digit × 1 Digit',
+        '3x1': 'Perkalian 3 Digit × 1 Digit',
+        '2x2': 'Perkalian 2 Digit × 2 Digit',
+        '3x2': 'Perkalian 3 Digit × 2 Digit',
+        '2d1d': 'Pembagian Bersusun 2 Digit ÷ 1 Digit',
+        '3d1d': 'Pembagian Bersusun 3 Digit ÷ 1 Digit',
+        '4d1d': 'Pembagian Bersusun 4 Digit ÷ 1 Digit',
+        '5d1d': 'Pembagian Bersusun 5 Digit ÷ 1 Digit'
     };
     return displayNames[numberType] || `Tabel ${numberType}`;
 }
@@ -176,7 +177,7 @@ function setMode(selectedMode) {
     renderNumberSelection();
 }
 
-// Tampilkan halaman pilihan angka
+// Tampilkan halaman pilihan angka (REVISI PEMBAGIAN CAMPURAN)
 function renderNumberSelection() {
     let numberSelectionHTML = '';
     let isMultiplication = operation === 'perkalian';
@@ -194,7 +195,6 @@ function renderNumberSelection() {
                 </div>
         `;
 
-        // Tampilkan opsi multi-digit hanya untuk mode tes
         if (mode === 'tes') {
             numberSelectionHTML += `
                 <h3 class="text-xl font-semibold text-gray-700 mt-6">Perkalian Multi-Digit</h3>
@@ -223,6 +223,7 @@ function renderNumberSelection() {
         numberSelectionHTML = `
             <div class="space-y-4">
                 <h3 class="text-xl font-semibold text-gray-700">Pembagian Dasar (Hasil 1-10)</h3>
+                <button onclick="setNumber('campuran-div')" class="w-full py-3 text-lg font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-colors duration-300 transform hover:scale-[1.02]">Tes Campuran (1-10) 🎲</button>
                 <div class="grid grid-cols-5 gap-3">
                     ${Array.from({length: 10}, (_, i) => i + 1).map(num => `
                         <button onclick="setNumber(${num})" class="w-full py-3 text-lg font-semibold text-white bg-blue-500 rounded-xl hover:bg-blue-600 transition-colors duration-300 transform hover:scale-[1.02]">${num}</button>
@@ -237,7 +238,7 @@ function renderNumberSelection() {
     mainContainer.innerHTML = `
         <div id="number-screen" class="space-y-6">
             <h1 class="text-3xl font-bold text-gray-800">Pilih Angka Tabel 🔢</h1>
-            <p class="text-gray-600">Pilih tabel ${operation} yang ingin Anda kuasai:</p>
+            <p class="text-gray-600">Pilih tabel ${isMultiplication ? 'perkalian' : 'pembagian'} yang ingin Anda kuasai:</p>
             ${numberSelectionHTML}
             <button onclick="${backButtonHandler}" class="mt-6 w-full py-3 text-lg font-semibold text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300 transition-colors duration-300">⬅️ Kembali</button>
         </div>
@@ -256,12 +257,12 @@ function setNumber(selectedNumber) {
     }
 }
 
-// Tampilkan halaman pilihan tabel perkalian yang sudah dihafal
+// Tampilkan halaman pilihan tabel perkalian yang sudah dihafal (untuk multi-digit)
 function renderMultiplicationTableSelection() {
     mainContainer.innerHTML = `
         <div id="table-selection-screen" class="space-y-6">
             <h1 class="text-3xl font-bold text-gray-800">Perkalian Multi-Digit: Tabel Hafalan 📚</h1>
-            <p class="text-gray-600">Pilih **semua** tabel perkalian dasar (1-10) yang sudah Anda kuasai. Ini akan menjadi **pengali** (divisor) dalam soal ${getMultiplicationDisplayName(number)}:</p>
+            <p class="text-gray-600">Pilih **semua** tabel perkalian dasar (1-10) yang sudah Anda kuasai. Ini akan menjadi **pengali/pembagi** dalam soal ${getMultiplicationDisplayName(number)}:</p>
             <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
                 <div class="grid grid-cols-3 md:grid-cols-5 gap-3">
                     ${Array.from({length: 10}, (_, i) => i + 1).map(num => `
@@ -318,7 +319,7 @@ function confirmTableSelection() {
 // Tampilkan halaman pilihan jumlah soal
 function renderQuestionCountSelection() {
     let options = [];
-    const isMultiDigit = ['campuran', '2x1', '3x1', '4x1', '2x2', '3x2', '4x2', '2d1d', '3d1d', '4d1d', '5d1d'].includes(String(number));
+    const isMultiDigit = ['campuran', 'campuran-div', '2x1', '3x1', '4x1', '2x2', '3x2', '4x2', '2d1d', '3d1d', '4d1d', '5d1d'].includes(String(number));
 
     if (isMultiDigit) {
         options = [10, 15, 20];
@@ -418,7 +419,7 @@ function generateQuestions() {
                     b = possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)];
                 } while (a === lastA && b === lastB);
                 answer = a * b;
-            } else if (['2x1', '3x1', '4x1'].includes(numberStr)) {
+            } else if (['2x1', '3x1'].includes(numberStr)) {
                 // Multi-digit x 1 digit (pengali dari selectedMultiplicationTables)
                 const numDigits = parseInt(numberStr[0]);
                 const min = Math.pow(10, numDigits - 1);
@@ -428,14 +429,14 @@ function generateQuestions() {
                     b = selectedMultiplicationTables[Math.floor(Math.random() * selectedMultiplicationTables.length)];
                 } while (a === lastA && b === lastB);
                 answer = a * b;
-            } else if (['2x2', '3x2', '4x2'].includes(numberStr)) {
-                // Multi-digit x 2 digit (digit kedua puluhan dari selectedMultiplicationTables)
+            } else if (['2x2', '3x2'].includes(numberStr)) {
+                // Multi-digit x 2 digit
                 const numDigitsA = parseInt(numberStr[0]);
                 const minA = Math.pow(10, numDigitsA - 1);
                 const maxA = Math.pow(10, numDigitsA) - 1;
                 do {
                     a = Math.floor(Math.random() * (maxA - minA + 1)) + minA;
-                    // B = 10*Digit Puluhan (dari tabel yang dipilih) + Digit Satuan (0-9)
+                    // B: 2 digit, puluhan dari tabel yang dipilih, satuan 0-9
                     let tensDigit = selectedMultiplicationTables[Math.floor(Math.random() * selectedMultiplicationTables.length)];
                     let onesDigit = Math.floor(Math.random() * 10);
                     b = tensDigit * 10 + onesDigit;
@@ -452,14 +453,24 @@ function generateQuestions() {
                 answer = a * b;
             }
         } else if (operation === 'pembagian') { // Pembagian biasa
-            const fixedNumber = parseInt(number);
-            do {
-                // a = pembilang, b = penyebut, answer = hasil
-                let multiplier = possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)];
-                b = fixedNumber;
-                a = fixedNumber * multiplier;
-                answer = multiplier;
-            } while (a === lastA && b === lastB);
+            if (numberStr === 'campuran-div') { // Pembagian Campuran
+                do {
+                    let multiplier = possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)];
+                    b = possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)]; // Pembagi 1-10
+                    a = b * multiplier; // Pembilang
+                    answer = multiplier; // Hasil
+                } while (a === lastA && b === lastB);
+            } else {
+                // Pembagian berdasarkan tabel angka
+                const fixedNumber = parseInt(number);
+                do {
+                    // a = pembilang, b = penyebut, answer = hasil
+                    let multiplier = possibleNumbers[Math.floor(Math.random() * possibleNumbers.length)];
+                    b = fixedNumber;
+                    a = fixedNumber * multiplier;
+                    answer = multiplier;
+                } while (a === lastA && b === lastB);
+            }
         } else if (operation === 'pembagian_bersusun') { // Pembagian bersusun
             const digitMap = { '2d1d': 2, '3d1d': 3, '4d1d': 4, '5d1d': 5 };
             const numDigits = digitMap[numberStr];
@@ -472,7 +483,7 @@ function generateQuestions() {
                     const minQ = Math.pow(10, numDigits - 1);
                     const maxQ = Math.pow(10, numDigits) - 1;
                     let quotient = Math.floor(Math.random() * (maxQ - minQ + 1)) + minQ;
-                    a = b * quotient; // a = yang dibagi (dividend)
+                    a = b * quotient; // a = yang dibagi (dividend), pastikan habis dibagi
                     answer = quotient;
                 } while (a === lastA && b === lastB);
             }
@@ -519,12 +530,11 @@ function renderFlashcard() {
 // Balik flash card
 function flipFlashcard() {
     const flashcard = document.getElementById('flashcard');
-    flashcard.classList.toggle('rotate-y-180');
-    // Tambahkan class Tailwind CSS rotate-y-180 di CSS kustom jika perlu
-    if (flashcard.classList.contains('rotate-y-180')) {
-        flashcard.style.transform = 'rotateY(180deg)';
-    } else {
+    // Toggle class untuk animasi flip (Membutuhkan CSS transform: rotateY(180deg) di CSS)
+    if (flashcard.style.transform === 'rotateY(180deg)') {
         flashcard.style.transform = 'rotateY(0deg)';
+    } else {
+        flashcard.style.transform = 'rotateY(180deg)';
     }
 }
 
@@ -560,7 +570,7 @@ function renderTestQuestion() {
         return;
     }
     const question = questions[currentQuestionIndex];
-    const symbol = (operation === 'perkalian' || operation.includes('perkalian')) ? 'x' : '÷';
+    const symbol = (operation === 'perkalian') ? 'x' : '÷';
     const questionText = `${question.a} ${symbol} ${question.b} = ?`;
 
     // Set timer (only if not in longgar mode)
@@ -613,11 +623,13 @@ function checkAnswer(timeout) {
     const isCorrect = !timeout && !isNaN(userAnswer) && userAnswer === question.answer;
 
     testAnswers.push({
-        question: `${question.a} ${(operation.includes('perkalian')) ? 'x' : '÷'} ${question.b}`,
+        question: `${question.a} ${(operation === 'perkalian') ? 'x' : '÷'} ${question.b}`,
         userAnswer: timeout ? 'Waktu habis' : (isNaN(userAnswer) ? 'Tidak dijawab' : userAnswer),
         correctAnswer: question.answer,
         isCorrect: isCorrect,
-        time: (timerSeconds === 0 || timeout) ? 'N/A' : timeTaken + 's'
+        time: (timerSeconds === 0 || timeout) ? 'N/A' : timeTaken + 's',
+        dividend: question.a,
+        divisor: question.b
     });
 
     if (!timeout && timerSeconds > 0) {
@@ -670,6 +682,14 @@ function renderResultPage() {
                     <p class="text-base">Jawaban Anda: <span class="${statusColor} font-bold">${answer.userAnswer}</span></p>
                     <p class="text-base">Jawaban Benar: <span class="text-green-700 font-extrabold">${answer.correctAnswer}</span></p>
                     <p class="text-sm mt-1">Hasil: <span class="${statusColor} font-bold">${status}</span> | Waktu: <span class="font-bold">${answer.time}</span></p>
+                    
+                    <div class="mt-2 p-2 bg-blue-100 rounded-md">
+                        <p class="text-sm font-semibold text-blue-800 mb-2">Kunci Jawaban:</p>
+                        <div class="font-mono text-sm text-blue-700">
+                            <p>${answer.dividend} ÷ ${answer.divisor} = ${answer.correctAnswer}</p>
+                            <p>Pemeriksaan: ${answer.correctAnswer} × ${answer.divisor} = ${answer.dividend}</p>
+                        </div>
+                    </div>
                 </div>
             `;
         });
@@ -677,8 +697,8 @@ function renderResultPage() {
         resultHTML += `</div>`;
     } else { // Mode Latihan
          resultHTML += `
-            <h2 class="text-3xl font-bold text-gray-700 text-center">Selamat!</h2>
-            <p class="text-gray-600 text-center">Anda telah menyelesaikan sesi latihan **${getMultiplicationDisplayName(number)}** dengan **${totalQuestions}** soal flash card. Sekarang coba mode tes untuk menguji kecepatan dan akurasi Anda! 💪</p>
+            <h2 class="text-2xl font-bold text-gray-700 text-center">Latihan Selesai!</h2>
+            <p class="text-gray-600 text-center">Anda telah menyelesaikan sesi latihan **${getMultiplicationDisplayName(number)}** dengan **${totalQuestions}** soal flash card. Silakan coba mode tes untuk menguji pemahaman Anda. 💪</p>
         `;
     }
 
