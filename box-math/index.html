@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Puzzle Box - Game Matematika Random</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'mat-primary': '#4CAF50', // Hijau
+                        'mat-secondary': '#FFC107', // Kuning
+                        'mat-accent': '#FF5722', // Oranye
+                        'mat-bg': '#E8F5E9', // Hijau muda
+                        'mat-danger': '#F44336' // Merah
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
+        }
+        .puzzle-cell {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            background-color: white;
+            transition: all 0.2s ease-in-out;
+        }
+        .puzzle-input {
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            border: none;
+            width: 100%;
+            height: 100%;
+            font-size: 24px;
+            font-weight: bold;
+            outline: none;
+            background-color: #F0F4C3;
+        }
+        .fixed-cell {
+            background-color: #f3f4f6;
+        }
+        .selected-btn {
+            background-color: #FF5722 !important; /* mat-accent */
+            color: white !important;
+            box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-mat-bg min-h-screen flex flex-col items-center p-4">
+
+    <header class="text-center mb-8">
+        <h1 class="text-5xl text-mat-accent border-b-4 border-mat-accent pb-2">Math Puzzles Box</h1>
+    </header>
+
+    <div id="name-screen" class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
+        <label for="student-name" class="block text-xl font-semibold mb-3 text-gray-700">Tuliskan Nama Anda:</label>
+        <input type="text" id="student-name" placeholder="Nama Siswa" class="w-full p-3 border-2 border-mat-primary rounded-lg focus:ring-2 focus:ring-mat-primary text-lg mb-5">
+        
+        <h3 class="text-xl font-semibold mb-3 text-gray-700">1. Pilih Waktu Tantangan:</h3>
+        <div class="flex justify-between space-x-2 mb-6">
+            <button onclick="selectOption('time', 90, 'btn-time-')" id="btn-time-90" class="option-btn-time w-1/3 bg-gray-400 text-white font-bold py-2 rounded-lg transition duration-200">Mudah (90s)</button>
+            <button onclick="selectOption('time', 60, 'btn-time-')" id="btn-time-60" class="option-btn-time w-1/3 bg-gray-400 text-white font-bold py-2 rounded-lg transition duration-200">Sedang (60s)</button>
+            <button onclick="selectOption('time', 30, 'btn-time-')" id="btn-time-30" class="option-btn-time w-1/3 bg-gray-400 text-white font-bold py-2 rounded-lg transition duration-200">Sulit (30s)</button>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 text-gray-700">2. Pilih Tingkat Soal (Angka):</h3>
+        <div class="flex justify-between space-x-1 mb-6">
+            <button onclick="selectOption('level', 'level1', 'btn-level-')" id="btn-level-level1" class="option-btn-level w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Level 1 (10-20)</button>
+            <button onclick="selectOption('level', 'level2', 'btn-level-')" id="btn-level-level2" class="option-btn-level w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Level 2 (20-50)</button>
+            <button onclick="selectOption('level', 'level3', 'btn-level-')" id="btn-level-level3" class="option-btn-level w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Level 3 (50-70)</button>
+            <button onclick="selectOption('level', 'level4', 'btn-level-')" id="btn-level-level4" class="option-btn-level w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Level 4 (70-100)</button>
+        </div>
+
+        <button onclick="startGame()" id="start-btn" class="w-full bg-mat-secondary hover:bg-yellow-500 text-gray-800 font-bold py-3 rounded-lg text-xl transition duration-300 disabled:opacity-50" disabled>Mulai Bermain!</button>
+    </div>
+
+    <main id="game-screen" class="hidden w-full max-w-6xl">
+        <div class="flex justify-between items-center w-full max-w-4xl mx-auto mb-4">
+            <p class="text-xl">Pemain: <span id="display-name" class="font-bold text-mat-accent"></span></p>
+            <p class="text-2xl font-bold p-2 rounded-lg shadow-md" id="timer-display">Waktu: ⏳<span class="text-mat-danger">--</span></p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-xl">
+            <h2 class="text-3xl font-bold mb-4 text-mat-primary" id="puzzle-title"></h2>
+            
+            <div id="puzzle-grid-container" class="flex flex-col md:flex-row gap-8 justify-center">
+                </div>
+            
+            <div class="mt-6 flex flex-col items-center">
+                <button onclick="checkPuzzle(false)" id="check-btn" class="bg-mat-secondary hover:bg-yellow-500 text-gray-800 font-bold py-2 px-6 rounded-lg text-xl transition duration-300">Cek Jawaban</button>
+                <button onclick="resetPuzzle()" id="retry-btn" class="hidden mt-4 bg-mat-danger hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg text-xl transition duration-300">Coba Lagi 🔄</button>
+            </div>
+            <p id="feedback" class="mt-4 text-xl font-semibold text-center"></p>
+        </div>
+    </main>
+
+    <script src="script.js"></script> 
+
+</body>
+</html>

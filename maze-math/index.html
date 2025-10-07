@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Maze Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Gaya tambahan untuk kotak labirin */
+        .maze-box {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 4 kolom untuk kotak 4x4 */
+            gap: 1px;
+            border: 2px solid #3b82f6; /* Warna biru untuk batas box */
+        }
+        .maze-cell {
+            min-width: 30px;
+            min-height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #9ca3af; /* Warna abu-abu muda untuk batas sel */
+            font-size: 1.1rem;
+            font-weight: bold;
+            background-color: #f3f4f6; /* Latar belakang sel */
+        }
+        .input-cell {
+            background-color: #ffffff; /* Latar belakang putih untuk input */
+            color: #1f2937;
+            text-align: center;
+            outline: none;
+            border: 2px solid #10b981; /* Border hijau untuk input */
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-5">
+
+    <h1 class="text-4xl font-bold text-center text-blue-600 mb-8">Permainan Labirin Matematika 🚀</h1>
+
+    <div id="start-screen" class="max-w-xl mx-auto p-6 bg-white shadow-xl rounded-lg">
+        <h2 class="text-2xl font-semibold mb-4 text-gray-800">Mulai Permainan</h2>
+
+        <div class="mb-4">
+            <label for="userName" class="block text-gray-700 font-bold mb-2">Nama Anda:</label>
+            <input type="text" id="userName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Masukkan Nama">
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 font-bold mb-2">Pilih Perkalian yang Dikuasai (Contoh: 7, 8, 9):</label>
+            <input type="text" id="multiplicationTables" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Pisahkan dengan koma (Misal: 3, 5, 10)">
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 font-bold mb-2">Pilih Level Kesulitan:</label>
+            <div class="flex space-x-4">
+                <button onclick="startGame('mudah')" class="py-2 px-4 bg-green-500 text-white font-bold rounded hover:bg-green-600 transition duration-300">Mudah (2 Box)</button>
+                <button onclick="startGame('sedang')" class="py-2 px-4 bg-yellow-500 text-white font-bold rounded hover:bg-yellow-600 transition duration-300">Sedang (4 Box)</button>
+                <button onclick="startGame('sulit')" class="py-2 px-4 bg-red-500 text-white font-bold rounded hover:bg-red-600 transition duration-300">Sulit (6 Box)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-container" class="hidden max-w-4xl mx-auto p-6 bg-white shadow-xl rounded-lg mt-8">
+        <p class="text-lg font-semibold mb-4">Selamat datang, <span id="player-name" class="text-blue-600"></span>! | Level: <span id="game-level"></span> | Bintang: <span id="star-count" class="text-yellow-500">0 ⭐</span></p>
+
+        <div id="maze-area" class="grid gap-4" style="grid-template-columns: repeat(3, 1fr);">
+            </div>
+
+        <div class="mt-6 flex justify-center space-x-4">
+            <button onclick="checkAnswers()" class="py-3 px-6 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition duration-300">Periksa Jawaban</button>
+            <button onclick="showAnswerKey()" class="py-3 px-6 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 transition duration-300">Lihat Kunci Jawaban</button>
+        </div>
+    </div>
+
+    <div id="answer-key-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-lg shadow-2xl max-w-5xl w-full">
+            <h3 class="text-2xl font-bold mb-4 text-green-700">Kunci Jawaban 🔑</h3>
+            <div id="answer-key-content" class="grid gap-4" style="grid-template-columns: repeat(3, 1fr);">
+                </div>
+            <button onclick="closeAnswerKey()" class="mt-4 py-2 px-4 bg-red-500 text-white font-bold rounded hover:bg-red-600">Tutup</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
