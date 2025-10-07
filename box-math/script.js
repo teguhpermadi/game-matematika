@@ -1,19 +1,52 @@
 // ====================================================================
-// script.js - Logika Game Puzzle Box (Dinamis)
+// script.js - Logika Game Puzzle Box (Dinamis dengan Opsi Waktu Longgar)
 // ====================================================================
 
 let selectedTime = null;
 let selectedLevelKey = null;
-let currentPuzzle = null; // Menyimpan puzzle yang sedang dimainkan (generated)
+let selectedOperation = null; 
+let currentPuzzle = null; 
 let timerInterval = null;
 let timeLeft = 0;
 
 // --- DATA KONFIGURASI LEVEL SOAL ---
 const LEVEL_CONFIG = {
-    'level1': { min: 3, max: 7, targetMin: 10, targetMax: 20 }, // Angka internal kecil
-    'level2': { min: 5, max: 15, targetMin: 20, targetMax: 50 }, // Angka internal sedang
-    'level3': { min: 10, max: 30, targetMin: 50, targetMax: 70 }, // Angka internal besar
-    'level4': { min: 15, max: 40, targetMin: 70, targetMax: 100 } // Angka internal sangat besar
+    // 1. Penjumlahan/Pengurangan 2x2
+    'plus_2x2': {
+        gridDim: 2,
+        isMultiplication: false,
+        'level1': { min: 3, max: 10, targetMin: 6, targetMax: 20 }, 
+        'level2': { min: 5, max: 20, targetMin: 10, targetMax: 40 },
+        'level3': { min: 10, max: 35, targetMin: 20, targetMax: 70 },
+        'level4': { min: 15, max: 50, targetMin: 30, targetMax: 100 }
+    },
+    // 2. Penjumlahan/Pengurangan 3x3
+    'plus_3x3': {
+        gridDim: 3,
+        isMultiplication: false,
+        'level1': { min: 3, max: 7, targetMin: 10, targetMax: 20 },
+        'level2': { min: 5, max: 15, targetMin: 20, targetMax: 50 },
+        'level3': { min: 10, max: 30, targetMin: 50, targetMax: 70 },
+        'level4': { min: 15, max: 40, targetMin: 70, targetMax: 100 }
+    },
+    // 3. Perkalian/Pembagian 2x2
+    'times_2x2': {
+        gridDim: 2,
+        isMultiplication: true,
+        'level1': { min: 2, max: 5, targetMin: 4, targetMax: 25 }, 
+        'level2': { min: 4, max: 8, targetMin: 16, targetMax: 64 }, 
+        'level3': { min: 6, max: 10, targetMin: 36, targetMax: 100 }, 
+        'level4': { min: 8, max: 12, targetMin: 64, targetMax: 144 } 
+    },
+    // 4. Perkalian/Pembagian 3x3
+    'times_3x3': {
+        gridDim: 3,
+        isMultiplication: true,
+        'level1': { min: 1, max: 3, targetMin: 1, targetMax: 27 }, 
+        'level2': { min: 2, max: 5, targetMin: 8, targetMax: 125 }, 
+        'level3': { min: 3, max: 7, targetMin: 27, targetMax: 343 },
+        'level4': { min: 4, max: 8, targetMin: 64, targetMax: 512 }
+    }
 };
 
 // --- FUNGSI HELPER ---
@@ -22,52 +55,62 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// --- FUNGSI GENERATOR PUZZLE (Inti Perubahan) ---
+// --- FUNGSI GENERATOR PUZZLE ---
 
-function generateRandomPuzzle(levelKey) {
-    const config = LEVEL_CONFIG[levelKey];
-    const cells = {};
-    const fixed = {};
-    const answers = {};
-    const rows = [0, 0, 0];
-    const cols = [0, 0, 0];
-    const totalCells = 9;
-    const numToFix = 4; // Jumlah sel yang akan diisi di awal (fixed cells)
+function generateRandomPuzzle(operationKey, levelKey) {
+    const operationConfig = LEVEL_CONFIG[operationKey];
+    const levelConfig = operationConfig[levelKey];
+    const gridDim = operationConfig.gridDim; 
+    const isMultiplication = operationConfig.isMultiplication;
     
-    // 1. Generate angka acak untuk 9 sel (c11 hingga c33)
-    for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 3; c++) {
+    const answers = {};
+    const fixed = {};
+    const sums = {};
+    const numToFix = gridDim === 3 ? 4 : 2; 
+    
+    let rows = Array(gridDim).fill(isMultiplication ? 1 : 0); 
+    let cols = Array(gridDim).fill(isMultiplication ? 1 : 0);
+    
+    for (let r = 0; r < gridDim; r++) {
+        for (let c = 0; c < gridDim; c++) {
             const key = `c${r + 1}${c + 1}`;
-            // Angka acak berdasarkan min/max Level Config
-            let value = getRandomInt(config.min, config.max); 
-            cells[key] = value;
-            answers[key] = value; // Kunci jawaban
+            let value = getRandomInt(levelConfig.min, levelConfig.max); 
             
-            rows[r] += value;
-            cols[c] += value;
+            answers[key] = value;
+            
+            if (!isMultiplication) { 
+                rows[r] += value;
+                cols[c] += value;
+            } else { 
+                rows[r] *= value;
+                cols[c] *= value;
+            }
         }
     }
     
-    // 2. Terapkan batasan hasil penjumlahan (TargetMin/Max)
-    // Cek apakah hasilnya terlalu besar atau kecil, jika ya, sesuaikan salah satu angka di baris/kolom tersebut.
-    // Catatan: Generator ini sederhana, jadi mungkin ada hasil yang sedikit di luar batas, tapi angkanya acak.
-    
-    // 3. Tentukan 4 sel yang akan di-fixed (ditampilkan)
     const allKeys = Object.keys(answers);
     const shuffledKeys = allKeys.sort(() => 0.5 - Math.random());
     
-    for (let i = 0; i < numToFix; i++) {
+    for (let i = 0; i < numToFix && i < allKeys.length; i++) {
         const key = shuffledKeys[i];
         fixed[key] = answers[key];
     }
     
-    // 4. Susun objek puzzle
+    for (let i = 0; i < gridDim; i++) {
+        sums[`r${i + 1}`] = rows[i];
+        sums[`c${i + 1}`] = cols[i];
+    }
+
+    const opText = isMultiplication ? 'Perkalian/Pembagian' : 'Penjumlahan/Pengurangan';
+    const dimText = `${gridDim}x${gridDim}`;
     return {
-        id: new Date().getTime(), // ID unik untuk puzzle ini
-        title: `Level Soal: ${levelKey.toUpperCase()} (Hasil ${config.targetMin}-${config.targetMax})`,
+        id: new Date().getTime(),
+        gridDim: gridDim,
+        operation: operationKey,
+        title: `Mode: ${opText} (${dimText}) | Level: ${levelKey.toUpperCase()}`,
         answer: answers,
         fixedCells: fixed,
-        sums: { 'r1': rows[0], 'r2': rows[1], 'r3': rows[2], 'c1': cols[0], 'c2': cols[1], 'c3': cols[2] }
+        sums: sums
     };
 }
 
@@ -86,76 +129,94 @@ function selectOption(type, value, buttonPrefix) {
         selectedLevelKey = value;
         containerClass = '.option-btn-level';
         selectedValue = selectedLevelKey;
+    } else if (type === 'operation') { 
+        selectedOperation = value;
+        containerClass = '.option-btn-operation';
+        selectedValue = selectedOperation;
     }
 
-    // Reset semua tombol di kategori yang dipilih
     document.querySelectorAll(containerClass).forEach(btn => {
         btn.classList.remove('selected-btn');
+        btn.classList.add('bg-gray-400');
+        // Kustomisasi warna untuk tombol Longgar saat tidak dipilih
+        if (btn.id === 'btn-time-unlimited' && !btn.classList.contains('selected-btn')) {
+             btn.classList.remove('bg-gray-400');
+             btn.classList.add('bg-mat-primary', 'hover:bg-green-600');
+        }
     });
 
     // Tandai tombol yang dipilih
+    document.getElementById(`${buttonPrefix}${selectedValue}`).classList.remove('bg-gray-400', 'bg-mat-primary', 'hover:bg-green-600');
     document.getElementById(`${buttonPrefix}${selectedValue}`).classList.add('selected-btn');
     
-    // Cek apakah start button bisa diaktifkan
-    if (selectedTime && selectedLevelKey) {
+    if (selectedTime && selectedLevelKey && selectedOperation) {
         document.getElementById('start-btn').disabled = false;
     }
 }
 
 function startGame() {
     const nameInput = document.getElementById('student-name').value.trim();
-    if (!nameInput || !selectedTime || !selectedLevelKey) {
-        alert("Mohon masukkan nama, pilih waktu, dan pilih tingkat soal terlebih dahulu!");
+    if (!nameInput || !selectedTime || !selectedLevelKey || !selectedOperation) {
+        alert("Mohon masukkan nama dan lengkapi ketiga pilihan di atas!");
         return;
     }
 
-    // GENERATE PUZZLE BARU SETIAP KALI START
-    currentPuzzle = generateRandomPuzzle(selectedLevelKey);
+    currentPuzzle = generateRandomPuzzle(selectedOperation, selectedLevelKey);
     
     document.getElementById('display-name').textContent = nameInput;
     document.getElementById('name-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
 
     loadPuzzle(currentPuzzle);
-    startTimer(selectedTime);
+    startTimer(selectedTime); // Mengirim 'unlimited' jika dipilih
 }
 
-// Gunakan 'puzzle' sebagai argumen, bukan 'puzzleId'
 function loadPuzzle(puzzle) {
     
-    // Reset tampilan
     document.getElementById('puzzle-title').textContent = puzzle.title;
     document.getElementById('puzzle-grid-container').innerHTML = '';
     document.getElementById('feedback').textContent = '';
     document.getElementById('check-btn').disabled = false;
     document.getElementById('retry-btn').classList.add('hidden');
 
-    // Buat grid Soal (Interaktif) dan Kunci Jawaban (Tersembunyi)
     const gridHTML = createGridHTML(puzzle, false);
     const keyHTML = createGridHTML(puzzle, true);
+    
+    const gridCols = `grid-cols-${puzzle.gridDim + 1}`;
     
     document.getElementById('puzzle-grid-container').innerHTML += `
         <div id="puzzle-grid-${puzzle.id}" class="flex flex-col items-center">
             <h3 class="text-xl font-semibold mb-2 text-gray-700">Soal Anda</h3>
-            <div class="grid grid-cols-4 gap-1">${gridHTML}</div>
+            <div class="grid ${gridCols} gap-1">${gridHTML}</div>
         </div>
         <div id="puzzle-key-${puzzle.id}" class="hidden flex flex-col items-center">
             <h3 class="text-xl font-semibold mb-2 text-mat-primary">Kunci Jawaban</h3>
-            <div class="grid grid-cols-4 gap-1 border-4 border-mat-primary p-1 rounded-md">
+            <div class="grid ${gridCols} gap-1 border-4 border-mat-primary p-1 rounded-md">
                 ${keyHTML}
             </div>
         </div>
     `;
     
-    // Isi input field setelah HTML di-render
     initializeInputFields(puzzle);
 }
 
+/**
+ * Fungsi untuk memulai timer atau menampilkan mode longgar
+ * @param {number|string} duration - Durasi dalam detik atau string 'unlimited'
+ */
 function startTimer(duration) {
     clearInterval(timerInterval);
-    timeLeft = duration;
     const timerDisplay = document.getElementById('timer-display');
     
+    if (duration === 'unlimited') {
+        timerDisplay.innerHTML = `Waktu: 🧠<span class="text-mat-primary">Longgar (Tanpa Batas)</span>`;
+        // Set timeLeft ke nilai yang besar agar checkPuzzle(false) tidak menganggap waktu habis
+        timeLeft = 999999; 
+        return; // Hentikan fungsi, tidak perlu timer interval
+    }
+
+    // Logika Timer Berwaktu
+    timeLeft = duration;
     timerDisplay.innerHTML = `Waktu: ⏳<span class="text-mat-primary">${timeLeft}s</span>`;
 
     timerInterval = setInterval(() => {
@@ -178,9 +239,10 @@ function startTimer(duration) {
 function createGridHTML(puzzle, isKey) {
     let html = '';
     const prefix = isKey ? 'k' : '';
+    const gridDim = puzzle.gridDim; 
     
-    for (let r = 1; r <= 3; r++) {
-        for (let c = 1; c <= 3; c++) {
+    for (let r = 1; r <= gridDim; r++) {
+        for (let c = 1; c <= gridDim; c++) {
             const cellId = `c${r}${c}`;
             const fixedValue = puzzle.fixedCells[cellId];
             const answerValue = puzzle.answer[cellId];
@@ -198,10 +260,10 @@ function createGridHTML(puzzle, isKey) {
         html += `<div class="puzzle-cell bg-gray-200">${puzzle.sums[`r${r}`]}</div>`;
     }
 
-    for (let c = 1; c <= 3; c++) {
+    for (let c = 1; c <= gridDim; c++) {
         html += `<div class="puzzle-cell bg-gray-200">${puzzle.sums[`c${c}`]}</div>`;
     }
-    html += `<div class="puzzle-cell bg-transparent border-transparent"></div>`;
+    html += `<div class="puzzle-cell bg-transparent border-transparent"></div>`; 
     
     return html;
 }
@@ -210,9 +272,16 @@ function initializeInputFields(puzzle) {
     const allCells = Object.keys(puzzle.answer);
     const inputCells = allCells.filter(cellId => puzzle.fixedCells[cellId] === undefined);
     
-    // Tentukan nilai max length input berdasarkan Level Angka
-    const config = LEVEL_CONFIG[selectedLevelKey];
-    const maxLength = config.max < 100 ? 2 : 3; // Jika max < 100, max length 2 digit
+    const operationConfig = LEVEL_CONFIG[selectedOperation];
+    const levelConfig = operationConfig[selectedLevelKey];
+    
+    let maxLength = 2;
+    if (levelConfig.max >= 100) {
+        maxLength = 3;
+    } else if (levelConfig.max < 10) {
+        maxLength = 1;
+    }
+
 
     inputCells.forEach(cellId => {
         const cell = document.getElementById(cellId);
@@ -248,7 +317,7 @@ function displayKey(puzzleId) {
 function checkPuzzle(isTimeUp = false) {
     clearInterval(timerInterval); 
     
-    const puzzle = currentPuzzle; // Gunakan currentPuzzle yang sudah digenerate
+    const puzzle = currentPuzzle; 
     const allCells = Object.keys(puzzle.answer);
     const inputCells = allCells.filter(cellId => puzzle.fixedCells[cellId] === undefined);
     let correctCount = 0;
@@ -276,8 +345,15 @@ function checkPuzzle(isTimeUp = false) {
     });
 
     if (correctCount === inputCells.length) {
-        const timeTaken = selectedTime - (isTimeUp ? 0 : timeLeft);
-        feedbackElement.textContent = `🎉 SELAMAT, ${document.getElementById('display-name').textContent}! Semua jawaban BENAR! Anda menyelesaikannya dalam ${timeTaken} detik.`;
+        let timeReport = "";
+        if (selectedTime !== 'unlimited') {
+            const timeTaken = selectedTime - (isTimeUp ? 0 : timeLeft);
+            timeReport = `Anda menyelesaikannya dalam ${timeTaken} detik.`;
+        } else {
+            timeReport = "Anda menyelesaikannya tanpa batas waktu.";
+        }
+        
+        feedbackElement.textContent = `🎉 SELAMAT, ${document.getElementById('display-name').textContent}! Semua jawaban BENAR! ${timeReport}`;
         feedbackElement.classList.remove('text-red-500', 'text-blue-600');
         feedbackElement.classList.add('text-green-600');
     } else {
@@ -300,13 +376,21 @@ function resetPuzzle() {
     clearInterval(timerInterval);
     
     // Reset tampilan dan variabel
-    document.querySelectorAll('.option-btn-time, .option-btn-level').forEach(btn => {
+    document.querySelectorAll('.option-btn-time, .option-btn-level, .option-btn-operation').forEach(btn => {
         btn.classList.remove('selected-btn');
         btn.classList.add('bg-gray-400');
+        
+        // Atur kembali warna khusus tombol Longgar
+        if (btn.id === 'btn-time-unlimited') {
+             btn.classList.remove('bg-gray-400');
+             btn.classList.add('bg-mat-primary', 'hover:bg-green-600');
+        }
     });
+    
     document.getElementById('start-btn').disabled = true;
     
     selectedTime = null;
     selectedLevelKey = null;
+    selectedOperation = null; 
     currentPuzzle = null;
 }
