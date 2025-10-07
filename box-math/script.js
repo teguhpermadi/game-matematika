@@ -1,5 +1,5 @@
 // ====================================================================
-// script.js - Logika Game Puzzle Box (Dinamis dengan Opsi Waktu Longgar)
+// script.js - Logika Game Puzzle Box (Dinamis & FIX Bug Tampilan)
 // ====================================================================
 
 let selectedTime = null;
@@ -107,7 +107,7 @@ function generateRandomPuzzle(operationKey, levelKey) {
         id: new Date().getTime(),
         gridDim: gridDim,
         operation: operationKey,
-        title: `Mode: ${opText} (${dimText}) | Level: ${levelKey.toUpperCase()}`,
+        title: `Misi ${opText} (${dimText}) | Kekuatan Level ${levelKey.slice(-1)}`,
         answer: answers,
         fixedCells: fixed,
         sums: sums
@@ -137,17 +137,26 @@ function selectOption(type, value, buttonPrefix) {
 
     document.querySelectorAll(containerClass).forEach(btn => {
         btn.classList.remove('selected-btn');
-        btn.classList.add('bg-gray-400');
-        // Kustomisasi warna untuk tombol Longgar saat tidak dipilih
-        if (btn.id === 'btn-time-unlimited' && !btn.classList.contains('selected-btn')) {
-             btn.classList.remove('bg-gray-400');
-             btn.classList.add('bg-mat-primary', 'hover:bg-green-600');
+        btn.classList.remove('bg-gray-400', 'bg-mat-info', 'bg-mat-primary', 'bg-mat-accent', 'bg-mat-danger');
+        
+        // Tetapkan warna default yang cerah (mengikuti warna Tailwind yang didefinisikan)
+        if (type === 'time') {
+             if (btn.id === 'btn-time-90') btn.classList.add('bg-mat-primary');
+             else if (btn.id === 'btn-time-60') btn.classList.add('bg-mat-accent');
+             else if (btn.id === 'btn-time-30') btn.classList.add('bg-mat-danger');
+             else if (btn.id === 'btn-time-unlimited') btn.classList.add('bg-mat-info');
+        } else if (type === 'operation') {
+             if (btn.id.includes('plus')) btn.classList.add('bg-mat-info');
+             else if (btn.id.includes('times')) btn.classList.add('bg-mat-primary');
+        } else if (type === 'level') {
+             btn.classList.add('bg-gray-400');
         }
     });
 
     // Tandai tombol yang dipilih
-    document.getElementById(`${buttonPrefix}${selectedValue}`).classList.remove('bg-gray-400', 'bg-mat-primary', 'hover:bg-green-600');
-    document.getElementById(`${buttonPrefix}${selectedValue}`).classList.add('selected-btn');
+    const selectedBtn = document.getElementById(`${buttonPrefix}${selectedValue}`);
+    selectedBtn.classList.remove('bg-gray-400', 'bg-mat-info', 'bg-mat-primary', 'bg-mat-accent', 'bg-mat-danger');
+    selectedBtn.classList.add('selected-btn');
     
     if (selectedTime && selectedLevelKey && selectedOperation) {
         document.getElementById('start-btn').disabled = false;
@@ -160,6 +169,9 @@ function startGame() {
         alert("Mohon masukkan nama dan lengkapi ketiga pilihan di atas!");
         return;
     }
+
+    // Perbaikan: Hapus logika yang mengaktifkan/menonaktifkan tombol di sini jika sudah ada di selectOption
+    document.getElementById('start-btn').disabled = true;
 
     currentPuzzle = generateRandomPuzzle(selectedOperation, selectedLevelKey);
     
@@ -182,22 +194,26 @@ function loadPuzzle(puzzle) {
     const gridHTML = createGridHTML(puzzle, false);
     const keyHTML = createGridHTML(puzzle, true);
     
+    // Penyesuaian agar grid tampil dengan benar
     const gridCols = `grid-cols-${puzzle.gridDim + 1}`;
     
-    document.getElementById('puzzle-grid-container').innerHTML += `
-        <div id="puzzle-grid-${puzzle.id}" class="flex flex-col items-center">
-            <h3 class="text-xl font-semibold mb-2 text-gray-700">Soal Anda</h3>
-            <div class="grid ${gridCols} gap-1">${gridHTML}</div>
-        </div>
-        <div id="puzzle-key-${puzzle.id}" class="hidden flex flex-col items-center">
-            <h3 class="text-xl font-semibold mb-2 text-mat-primary">Kunci Jawaban</h3>
-            <div class="grid ${gridCols} gap-1 border-4 border-mat-primary p-1 rounded-md">
-                ${keyHTML}
+    document.getElementById('puzzle-grid-container').innerHTML = `
+        <div class="flex flex-col md:flex-row gap-8 w-full justify-center items-start">
+            <div id="puzzle-grid-${puzzle.id}" class="flex-1 flex flex-col items-center bg-white/50 p-6 rounded-xl shadow-lg border-4 border-mat-accent/50">
+                <h3 class="text-2xl font-semibold mb-4 text-mat-dark">Soal Seru! 🧩</h3>
+                <div class="grid ${gridCols} gap-2">${gridHTML}</div>
+            </div>
+            <div id="puzzle-key-${puzzle.id}" class="hidden flex-1 flex flex-col items-center bg-green-50/50 p-6 rounded-xl shadow-lg border-4 border-mat-primary/50">
+                <h3 class="text-2xl font-semibold mb-4 text-mat-primary">Kunci Jawaban! 🗝️</h3>
+                <div class="grid ${gridCols} gap-2">${keyHTML}</div>
             </div>
         </div>
     `;
     
-    initializeInputFields(puzzle);
+    // Pastikan elemen grid telah dimuat sebelum menginisialisasi input fields
+    setTimeout(() => {
+        initializeInputFields(puzzle);
+    }, 100);
 }
 
 /**
@@ -209,7 +225,7 @@ function startTimer(duration) {
     const timerDisplay = document.getElementById('timer-display');
     
     if (duration === 'unlimited') {
-        timerDisplay.innerHTML = `Waktu: 🧠<span class="text-mat-primary">Longgar (Tanpa Batas)</span>`;
+        timerDisplay.innerHTML = `Waktu: 🧠<span class="text-mat-primary font-extrabold">Longgar</span>`;
         // Set timeLeft ke nilai yang besar agar checkPuzzle(false) tidak menganggap waktu habis
         timeLeft = 999999; 
         return; // Hentikan fungsi, tidak perlu timer interval
@@ -217,53 +233,65 @@ function startTimer(duration) {
 
     // Logika Timer Berwaktu
     timeLeft = duration;
-    timerDisplay.innerHTML = `Waktu: ⏳<span class="text-mat-primary">${timeLeft}s</span>`;
+    timerDisplay.innerHTML = `Waktu: ⏳<span class="text-mat-accent">${timeLeft}s</span>`;
 
     timerInterval = setInterval(() => {
         timeLeft--;
         if (timeLeft < 10) {
-            timerDisplay.innerHTML = `Waktu: ⏳<span class="text-mat-danger">${timeLeft}s</span>`;
+            timerDisplay.innerHTML = `Waktu: ⏳<span class="text-mat-danger font-extrabold">${timeLeft}s</span>`;
         } else {
-            timerDisplay.innerHTML = `Waktu: ⏳<span class="text-mat-primary">${timeLeft}s</span>`;
+            timerDisplay.innerHTML = `Waktu: ⏳<span class="text-mat-accent">${timeLeft}s</span>`;
         }
 
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
-            timerDisplay.innerHTML = `Waktu: 💀<span class="text-mat-danger">0s - Habis!</span>`;
+            timerDisplay.innerHTML = `Waktu: 💀<span class="text-mat-danger font-extrabold">Habis!</span>`;
             checkPuzzle(true); 
         }
     }, 1000);
 }
 
 
+/**
+ * Fungsi untuk membangun HTML grid puzzle/key.
+ * FUNGSI INI HANYA MEMBANGUN HTML, TIDAK MELAKUKAN PERHITUNGAN.
+ */
 function createGridHTML(puzzle, isKey) {
     let html = '';
     const prefix = isKey ? 'k' : '';
     const gridDim = puzzle.gridDim; 
     
+    // Looping melalui baris
     for (let r = 1; r <= gridDim; r++) {
+        // Looping melalui kolom (sel grid)
         for (let c = 1; c <= gridDim; c++) {
             const cellId = `c${r}${c}`;
             const fixedValue = puzzle.fixedCells[cellId];
-            const answerValue = puzzle.answer[cellId];
+            const answerValue = puzzle.answer[cellId]; 
             
-            if (fixedValue !== undefined && !isKey) {
+            if (!isKey && fixedValue !== undefined) {
+                // Mode Puzzle: Tampilkan angka tetap
                 html += `<div id="${prefix}${cellId}" class="puzzle-cell fixed-cell">${fixedValue}</div>`;
             } else if (isKey) {
+                // Mode Kunci: Tampilkan jawaban
                 const bgColor = puzzle.fixedCells[cellId] !== undefined ? '#CFD8DC' : '#FFFDE7';
-                const textColor = '#1B5E20';
-                html += `<div id="${prefix}${cellId}" class="puzzle-cell" style="background-color: ${bgColor}; color: ${textColor};">${answerValue}</div>`;
+                const textColor = '#3E2723';
+                html += `<div id="${prefix}${cellId}" class="puzzle-cell" style="background-color: ${bgColor}; color: ${textColor}; box-shadow: 0 4px 0 0 #A1887F;">${answerValue}</div>`;
             } else {
+                // Mode Puzzle: Tampilkan wadah untuk kolom input
                 html += `<div id="${prefix}${cellId}" class="puzzle-cell"></div>`;
             }
         }
-        html += `<div class="puzzle-cell bg-gray-200">${puzzle.sums[`r${r}`]}</div>`;
+        // Tambahkan Total Baris/Hasil 
+        html += `<div class="puzzle-cell bg-mat-info/80 border-mat-info shadow-none font-extrabold">${puzzle.sums[`r${r}`]}</div>`;
     }
 
+    // Tambahkan Baris Total Kolom/Hasil 
     for (let c = 1; c <= gridDim; c++) {
-        html += `<div class="puzzle-cell bg-gray-200">${puzzle.sums[`c${c}`]}</div>`;
+        html += `<div class="puzzle-cell bg-mat-primary/80 border-mat-primary shadow-none font-extrabold">${puzzle.sums[`c${c}`]}</div>`;
     }
-    html += `<div class="puzzle-cell bg-transparent border-transparent"></div>`; 
+    // Tambahkan sel Sudut (kosong)
+    html += `<div class="puzzle-cell bg-transparent border-transparent shadow-none"></div>`; 
     
     return html;
 }
@@ -348,24 +376,24 @@ function checkPuzzle(isTimeUp = false) {
         let timeReport = "";
         if (selectedTime !== 'unlimited') {
             const timeTaken = selectedTime - (isTimeUp ? 0 : timeLeft);
-            timeReport = `Anda menyelesaikannya dalam ${timeTaken} detik.`;
+            timeReport = `Wow! Kamu menyelesaikannya dalam ${timeTaken} detik.`;
         } else {
-            timeReport = "Anda menyelesaikannya tanpa batas waktu.";
+            timeReport = "Misi berhasil diselesaikan!";
         }
         
-        feedbackElement.textContent = `🎉 SELAMAT, ${document.getElementById('display-name').textContent}! Semua jawaban BENAR! ${timeReport}`;
-        feedbackElement.classList.remove('text-red-500', 'text-blue-600');
-        feedbackElement.classList.add('text-green-600');
+        feedbackElement.textContent = `🎉 FANTASTIS, ${document.getElementById('display-name').textContent}! Semua jawaban BENAR! ${timeReport} 🎉`;
+        feedbackElement.classList.remove('bg-mat-danger/20', 'text-red-500');
+        feedbackElement.classList.add('bg-mat-primary/20', 'text-green-700', 'border-4', 'border-mat-primary');
     } else {
         displayKey(puzzle.id); 
         
         if (isTimeUp) {
-            feedbackElement.textContent = `❌ Waktu habis! Anda berhasil menjawab ${correctCount} dari ${inputCells.length}. Kunci jawaban telah ditampilkan.`;
+            feedbackElement.textContent = `❌ Waktu habis! Kamu berhasil menjawab ${correctCount} dari ${inputCells.length}. Coba lagi ya!`;
         } else {
-            feedbackElement.textContent = `Anda menjawab benar ${correctCount} dari ${inputCells.length} kotak. Silakan lihat kunci jawaban di samping dan coba lagi!`;
+            feedbackElement.textContent = `Jawabanmu benar ${correctCount} dari ${inputCells.length} kotak. Jangan menyerah, coba lagi!`;
         }
-        feedbackElement.classList.remove('text-green-600');
-        feedbackElement.classList.add('text-red-500');
+        feedbackElement.classList.remove('bg-mat-primary/20', 'text-green-700');
+        feedbackElement.classList.add('bg-mat-danger/20', 'text-red-500', 'border-4', 'border-mat-danger');
     }
 }
 
@@ -383,8 +411,15 @@ function resetPuzzle() {
         // Atur kembali warna khusus tombol Longgar
         if (btn.id === 'btn-time-unlimited') {
              btn.classList.remove('bg-gray-400');
-             btn.classList.add('bg-mat-primary', 'hover:bg-green-600');
+             btn.classList.add('bg-mat-info', 'hover:bg-blue-400');
+        } else if (btn.id.includes('plus')) {
+             btn.classList.remove('bg-gray-400');
+             btn.classList.add('bg-mat-info', 'hover:bg-blue-400');
+        } else if (btn.id.includes('times')) {
+             btn.classList.remove('bg-gray-400');
+             btn.classList.add('bg-mat-primary', 'hover:bg-green-500');
         }
+        // Tombol level tetap abu-abu hingga dipilih
     });
     
     document.getElementById('start-btn').disabled = true;
