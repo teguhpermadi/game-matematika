@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Matematika Cerdas! 🧠</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        /* CSS tambahan untuk efek 3D pada Flashcard */
+        .flashcard-container {
+            perspective: 1000px;
+        }
+        .flashcard {
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+        .flashcard-face {
+            backface-visibility: hidden;
+        }
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+        /* Mengganti warna latar belakang agar lebih ceria */
+        body {
+            background-color: #ffe4e6; /* Pink muda/pastel yang cerah */
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="main-container" class="bg-white rounded-3xl shadow-2xl w-full max-w-xl p-8 text-center transition-all duration-500 border-4 border-pink-300">
+        <div class="text-gray-500">Memuat aplikasi...</div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Matematika Seru! 🎉</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* CSS Tambahan untuk gradasi dan efek hover yang lebih menarik */
+        .card-gradient-1 {
+            background-image: linear-gradient(to right top, #f97316, #fcd34d); /* Oranye ke Kuning */
+            transition: transform 0.3s ease;
+        }
+        .card-gradient-2 {
+            background-image: linear-gradient(to right top, #06b6d4, #34d399); /* Biru ke Hijau Tosca */
+            transition: transform 0.3s ease;
+        }
+        .card-link:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        /* Efek latar belakang bersemangat */
+        body {
+            background-color: #f0f9ff; /* Biru muda cerah */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <header class="text-center mb-12">
+        <h1 class="text-6xl font-extrabold text-orange-500 mb-4 animate-pulse">
+            Ayo Main dan Belajar! 🚀
+        </h1>
+        <p class="text-xl text-gray-600 font-medium">Pilih petualangan matematikamu hari ini!</p>
+    </header>
+
+    <main class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8">
+
+        <a href="\memorizing-math\index.html" class="card-link card-gradient-1 p-8 rounded-3xl shadow-xl text-white flex flex-col items-center text-center">
+            <span class="text-6xl mb-4">✖️➗</span>
+            <h2 class="text-3xl font-bold mb-2">Hafalan Cepat</h2>
+            <p class="text-lg font-light">Perkalian & Pembagian</p>
+            <p class="mt-4 text-sm opacity-90">Asah kecepatanmu dalam berhitung dasar!</p>
+        </a>
+
+        <a href="\box-math\index.html" class="card-link card-gradient-2 p-8 rounded-3xl shadow-xl text-white flex flex-col items-center text-center">
+            <span class="text-6xl mb-4">🧩➕</span>
+            <h2 class="text-3xl font-bold mb-2">Game Matematika Seru</h2>
+            <p class="text-lg font-light">Komposisi & Dekomposisi Bilangan</p>
+            <p class="mt-4 text-sm opacity-90">Bongkar pasang angka, latih logika berpikir!</p>
+        </a>
+
+    </main>
+
+    <footer class="mt-12 text-gray-500 text-sm">
+        Dibuat dengan semangat belajar matematika! ✨
+    </footer>
+
+    <script>
+        // Sedikit animasi saat halaman dimuat menggunakan kelas Tailwind
+        document.addEventListener('DOMContentLoaded', () => {
+            const header = document.querySelector('header');
+            const cards = document.querySelectorAll('.card-link');
+            
+            // Animasi header masuk
+            header.classList.add('opacity-0', 'transform', 'translate-y-[-20px]');
+            setTimeout(() => {
+                header.classList.remove('opacity-0', 'translate-y-[-20px]');
+                header.classList.add('transition-all', 'duration-700', 'ease-out');
+            }, 100);
+
+            // Animasi kartu masuk berurutan
+            cards.forEach((card, index) => {
+                card.classList.add('opacity-0', 'transform', 'scale-90');
+                setTimeout(() => {
+                    card.classList.remove('opacity-0', 'scale-90');
+                    card.classList.add('transition-all', 'duration-500', 'ease-in-out');
+                }, 300 + index * 200);
+            });
+        });
+    </script>
+
+</body>
+</html>
