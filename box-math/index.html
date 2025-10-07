@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,11 +11,11 @@
             theme: {
                 extend: {
                     colors: {
-                        'mat-primary': '#4CAF50', 
-                        'mat-secondary': '#FFC107', 
-                        'mat-accent': '#FF5722', 
-                        'mat-bg': '#E8F5E9', 
-                        'mat-danger': '#F44336' 
+                        'mat-primary': '#4CAF50',
+                        'mat-secondary': '#FFC107',
+                        'mat-accent': '#FF5722',
+                        'mat-bg': '#E8F5E9',
+                        'mat-danger': '#F44336'
                     }
                 }
             }
@@ -24,19 +25,21 @@
         body {
             font-family: 'Comic Sans MS', 'Chalkboard SE', cursive;
         }
+
         .puzzle-cell {
             /* Disesuaikan untuk semua ukuran grid */
-            width: 70px; 
+            width: 70px;
             height: 70px;
             border: 2px solid #333;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 20px; 
+            font-size: 20px;
             font-weight: bold;
             background-color: white;
             transition: all 0.2s ease-in-out;
         }
+
         .puzzle-input {
             text-align: center;
             padding: 0;
@@ -49,9 +52,11 @@
             outline: none;
             background-color: #F0F4C3;
         }
+
         .fixed-cell {
             background-color: #f3f4f6;
         }
+
         .selected-btn {
             background-color: #FF5722 !important;
             color: white !important;
@@ -59,67 +64,105 @@
         }
     </style>
 </head>
+
 <body class="bg-mat-bg min-h-screen flex flex-col items-center p-4">
 
-    <header class="text-center mb-8 relative">
-        <a href="../index.html" class="absolute left-0 top-1/2 -translate-y-1/2 bg-mat-primary hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
-            ← Kembali
-        </a>
+    <header class="text-center mb-8">
         <h1 class="text-5xl text-mat-accent border-b-4 border-mat-accent pb-2">Math Puzzles Box</h1>
     </header>
+    <div class="w-full max-w-xl mb-16 relative">
+        <div class="w-full flex justify-start">
+            <a href="../index.html"
+                class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-lg transition duration-200 shadow-lg">
+                ← Kembali
+            </a>
+        </div>
+    </div>
 
     <div id="name-screen" class="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
         <label for="student-name" class="block text-xl font-semibold mb-3 text-gray-700">Tuliskan Nama Anda:</label>
-        <input type="text" id="student-name" placeholder="Nama Siswa" class="w-full p-3 border-2 border-mat-primary rounded-lg focus:ring-2 focus:ring-mat-primary text-lg mb-5">
-        
+        <input type="text" id="student-name" placeholder="Nama Siswa"
+            class="w-full p-3 border-2 border-mat-primary rounded-lg focus:ring-2 focus:ring-mat-primary text-lg mb-5">
+
         <h3 class="text-xl font-semibold mb-3 text-gray-700">1. Pilih Operasi & Ukuran Grid:</h3>
         <div class="flex flex-wrap justify-between gap-2 mb-6">
-            <button onclick="selectOption('operation', 'plus_2x2', 'btn-op-')" id="btn-op-plus_2x2" class="option-btn-operation w-[calc(50%-4px)] bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">➕ / ➖ (2x2)</button>
-            <button onclick="selectOption('operation', 'plus_3x3', 'btn-op-')" id="btn-op-plus_3x3" class="option-btn-operation w-[calc(50%-4px)] bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">➕ / ➖ (3x3)</button>
-            <button onclick="selectOption('operation', 'times_2x2', 'btn-op-')" id="btn-op-times_2x2" class="option-btn-operation w-[calc(50%-4px)] bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">✖️ / ➗ (2x2)</button>
-            <button onclick="selectOption('operation', 'times_3x3', 'btn-op-')" id="btn-op-times_3x3" class="option-btn-operation w-[calc(50%-4px)] bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">✖️ / ➗ (3x3)</button>
+            <button onclick="selectOption('operation', 'plus_2x2', 'btn-op-')" id="btn-op-plus_2x2"
+                class="option-btn-operation w-[calc(50%-4px)] bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">➕
+                / ➖ (2x2)</button>
+            <button onclick="selectOption('operation', 'plus_3x3', 'btn-op-')" id="btn-op-plus_3x3"
+                class="option-btn-operation w-[calc(50%-4px)] bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">➕
+                / ➖ (3x3)</button>
+            <button onclick="selectOption('operation', 'times_2x2', 'btn-op-')" id="btn-op-times_2x2"
+                class="option-btn-operation w-[calc(50%-4px)] bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">✖️
+                / ➗ (2x2)</button>
+            <button onclick="selectOption('operation', 'times_3x3', 'btn-op-')" id="btn-op-times_3x3"
+                class="option-btn-operation w-[calc(50%-4px)] bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">✖️
+                / ➗ (3x3)</button>
         </div>
 
         <h3 class="text-xl font-semibold mb-3 text-gray-700">2. Pilih Waktu Tantangan:</h3>
         <div class="flex justify-between space-x-1 mb-6">
-            <button onclick="selectOption('time', 90, 'btn-time-')" id="btn-time-90" class="option-btn-time w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Mudah (90s)</button>
-            <button onclick="selectOption('time', 60, 'btn-time-')" id="btn-time-60" class="option-btn-time w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Sedang (60s)</button>
-            <button onclick="selectOption('time', 30, 'btn-time-')" id="btn-time-30" class="option-btn-time w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Sulit (30s)</button>
-            <button onclick="selectOption('time', 'unlimited', 'btn-time-')" id="btn-time-unlimited" class="option-btn-time w-1/4 bg-mat-primary hover:bg-green-600 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Longgar</button>
+            <button onclick="selectOption('time', 90, 'btn-time-')" id="btn-time-90"
+                class="option-btn-time w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Mudah
+                (90s)</button>
+            <button onclick="selectOption('time', 60, 'btn-time-')" id="btn-time-60"
+                class="option-btn-time w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Sedang
+                (60s)</button>
+            <button onclick="selectOption('time', 30, 'btn-time-')" id="btn-time-30"
+                class="option-btn-time w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Sulit
+                (30s)</button>
+            <button onclick="selectOption('time', 'unlimited', 'btn-time-')" id="btn-time-unlimited"
+                class="option-btn-time w-1/4 bg-mat-primary hover:bg-green-600 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Longgar</button>
         </div>
 
         <h3 class="text-xl font-semibold mb-3 text-gray-700">3. Pilih Tingkat Soal (Angka):</h3>
         <div class="flex justify-between space-x-1 mb-6">
-            <button onclick="selectOption('level', 'level1', 'btn-level-')" id="btn-level-level1" class="option-btn-level w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Level 1 (10-20)</button>
-            <button onclick="selectOption('level', 'level2', 'btn-level-')" id="btn-level-level2" class="option-btn-level w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Level 2 (20-50)</button>
-            <button onclick="selectOption('level', 'level3', 'btn-level-')" id="btn-level-level3" class="option-btn-level w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Level 3 (50-70)</button>
-            <button onclick="selectOption('level', 'level4', 'btn-level-')" id="btn-level-level4" class="option-btn-level w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Level 4 (70-100)</button>
+            <button onclick="selectOption('level', 'level1', 'btn-level-')" id="btn-level-level1"
+                class="option-btn-level w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Level
+                1 (10-20)</button>
+            <button onclick="selectOption('level', 'level2', 'btn-level-')" id="btn-level-level2"
+                class="option-btn-level w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Level
+                2 (20-50)</button>
+            <button onclick="selectOption('level', 'level3', 'btn-level-')" id="btn-level-level3"
+                class="option-btn-level w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Level
+                3 (50-70)</button>
+            <button onclick="selectOption('level', 'level4', 'btn-level-')" id="btn-level-level4"
+                class="option-btn-level w-1/4 bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition duration-200">Level
+                4 (70-100)</button>
         </div>
 
-        <button onclick="startGame()" id="start-btn" class="w-full bg-mat-secondary hover:bg-yellow-500 text-gray-800 font-bold py-3 rounded-lg text-xl transition duration-300 disabled:opacity-50" disabled>Mulai Bermain!</button>
+        <button onclick="startGame()" id="start-btn"
+            class="w-full bg-mat-secondary hover:bg-yellow-500 text-gray-800 font-bold py-3 rounded-lg text-xl transition duration-300 disabled:opacity-50"
+            disabled>Mulai Bermain!</button>
     </div>
 
     <main id="game-screen" class="hidden w-full max-w-6xl">
         <div class="flex justify-between items-center w-full max-w-4xl mx-auto mb-4">
             <p class="text-xl">Pemain: <span id="display-name" class="font-bold text-mat-accent"></span></p>
-            <p class="text-2xl font-bold p-2 rounded-lg shadow-md" id="timer-display">Waktu: ⏳<span class="text-mat-danger">--</span></p>
+            <p class="text-2xl font-bold p-2 rounded-lg shadow-md" id="timer-display">Waktu: ⏳<span
+                    class="text-mat-danger">--</span></p>
         </div>
-        
+
         <div class="bg-white p-6 rounded-lg shadow-xl">
             <h2 class="text-3xl font-bold mb-4 text-mat-primary" id="puzzle-title"></h2>
-            
+
             <div id="puzzle-grid-container" class="flex flex-col md:flex-row gap-8 justify-center">
-                </div>
-            
+            </div>
+
             <div class="mt-6 flex flex-col items-center">
-                <button onclick="checkPuzzle(false)" id="check-btn" class="bg-mat-secondary hover:bg-yellow-500 text-gray-800 font-bold py-2 px-6 rounded-lg text-xl transition duration-300">Cek Jawaban</button>
-                <button onclick="resetPuzzle()" id="retry-btn" class="hidden mt-4 bg-mat-danger hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg text-xl transition duration-300">Coba Lagi 🔄</button>
+                <button onclick="checkPuzzle(false)" id="check-btn"
+                    class="bg-mat-secondary hover:bg-yellow-500 text-gray-800 font-bold py-2 px-6 rounded-lg text-xl transition duration-300">Cek
+                    Jawaban</button>
+                <button onclick="resetPuzzle()" id="retry-btn"
+                    class="hidden mt-4 bg-mat-danger hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg text-xl transition duration-300">Coba
+                    Lagi 🔄</button>
             </div>
             <p id="feedback" class="mt-4 text-xl font-semibold text-center"></p>
         </div>
     </main>
 
-    <script src="script.js"></script> 
+    <script src="script.js"></script>
 
 </body>
+
 </html>
